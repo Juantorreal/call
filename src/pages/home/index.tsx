@@ -1,5 +1,5 @@
 import { Heading, Text} from '@ignite-ui/react'
-import { Container, Preview } from './styles'
+import { Container, Preview, Hero } from './styles'
 import previewImage from '../../assets/app-preview.png'
 import Image from 'next/image'
 
@@ -11,7 +11,7 @@ export default function Home() {
         <Text size="lg">Conecte seu calendário e permita que as pessoas marquem agendamentos no seu tempo livre.</Text>
       </Hero>
       <Preview>
-<Image src={previewImage} height={400} quality={100} priority alt="calendário"/>
+      <Image src={previewImage} height={400} alt="" quality={100} priority/>
       </Preview>
 
     </Container>
