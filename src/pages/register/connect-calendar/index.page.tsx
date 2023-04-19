@@ -1,18 +1,26 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Heading, MultiStep, Text, TextInput } from "@ignite-ui/react";
-import { ArrowRight } from "phosphor-react";
+import { ArrowRight, Check } from "phosphor-react";
 import { Container,Header } from "../styles";
-import { ConnectBox, ConnectItem } from "./styles";
-import { signIn } from "next-auth/react";
+import { AuthError, ConnectBox, ConnectItem } from "./styles";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 
 export default function Register() {
+const session = useSession()
 
-    //async function handleRegister(data:RegisterFormData) {
-        
-   // }
+const router = useRouter()
 
+const hasAuthError = !!router.query.error
+const isSignedIn = session.status === 'authenticated'
 
+console.log(session)
+
+    async function handleConnectCalendar() {
+      await signIn('google')
+
+    }
 
     return (
         <Container>
@@ -25,9 +33,22 @@ export default function Register() {
             <ConnectBox>
                 <ConnectItem>
                     <Text>Google Agenda</Text>
-                    <Button variant="secondary" size="sm" onClick={() => signIn('google')}>Conectar<ArrowRight/></Button>
+                    {
+                        isSignedIn ? (
+                            <Button size="sm" disabled>Conectado <Check/></Button>
+                        ) : (
+                            <Button variant="secondary"
+                             size="sm"
+                              onClick={handleConnectCalendar}>Conectar<ArrowRight/></Button>
+                        )
+                    }
                 </ConnectItem>
-            <Button type="submit" >Proximo passo
+               {hasAuthError && (
+                <AuthError size="sm">
+                    Falha ao se conectar, verifique se as o acesso ao Google Calendar.
+                </AuthError>
+               )} 
+            <Button type="submit" disabled={!isSignedIn}>Proximo passo
                 <ArrowRight/></Button>
             </ConnectBox>
            
