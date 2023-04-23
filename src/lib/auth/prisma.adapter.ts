@@ -1,10 +1,20 @@
 import { Adapter } from "next-auth/adapters"
 import { prisma } from "../prisma"
+import { NextRequest } from "next/server"
+import { NextApiResponse } from "next"
+import { parseCookies } from "nookies"
 
-export  function PrismaAdapter():Adapter { 
+export  function PrismaAdapter(req:NextRequest,res:NextApiResponse):Adapter { 
     return {
       async createUser(user) {
+        const {'@ignitecall:userId': userIdOnCookies} = parseCookies({req})
 
+        if(!userIdOnCookies) {
+          throw new Error('User Id Not found on cookies')
+        }
+        const prismaUser = await prisma.user.update({
+          
+        })
       },
       async getUser(id) {
         const user = await prisma.user.findUniqueOrThrow({
