@@ -6,9 +6,10 @@ import type { NextApiRequest, NextApiResponse } from "next"
 
 
 
-export function buildNextAuthOptions(req:NextApiRequest, res:NextApiResponse): NextAuthOptions = {
+
+export function buildNextAuthOptions(req:NextApiRequest, res:NextApiResponse): NextAuthOptions  {
 return {
-  adapter: PrismaAdapter(req,res)
+  adapter: PrismaAdapter(req,res),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",

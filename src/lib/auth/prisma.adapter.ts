@@ -2,7 +2,7 @@ import { Adapter } from "next-auth/adapters"
 import { prisma } from "../prisma"
 import { NextRequest } from "next/server"
 import { NextApiResponse } from "next"
-import { parseCookies } from "nookies"
+import { destroyCookie, parseCookies } from "nookies"
 
 export  function PrismaAdapter(req:NextRequest,res:NextApiResponse):Adapter { 
     return {
@@ -13,15 +13,39 @@ export  function PrismaAdapter(req:NextRequest,res:NextApiResponse):Adapter {
           throw new Error('User Id Not found on cookies')
         }
         const prismaUser = await prisma.user.update({
-          
+          where: {
+            id: userIdOnCookies,
+
+            
+          },
+          data: {
+            name: user.name,
+            email: user.email,
+            avatar_url: user.avatar_url,
+
+          }
         })
+        destroyCookie({res},'@ignitecall:userId',{
+          path: '/'
+        } )
+        return {
+          id: prismaUser.id,
+          name: prismaUser.name,
+          email: prismaUser.email!,
+          avatar_url: prismaUser.avatar_url!,
+          emailVerified: null,
+
+      }
       },
       async getUser(id) {
-        const user = await prisma.user.findUniqueOrThrow({
+        const user = await prisma.user.findUnique({
             where: {
                 id,
             },
         })
+        if(!user) {
+          return null
+        }
         return {
             id: user.id,
             name: user.name,
@@ -32,11 +56,14 @@ export  function PrismaAdapter(req:NextRequest,res:NextApiResponse):Adapter {
         }
       },
       async getUserByEmail(email) {
-        const user = await prisma.user.findUniqueOrThrow({
+        const user = await prisma.user.findUnique({
             where: {
                 email,
             },
         })
+        if(!user) {
+          return null
+        }
         return {
             id: user.id,
             name: user.name,
@@ -47,23 +74,30 @@ export  function PrismaAdapter(req:NextRequest,res:NextApiResponse):Adapter {
         }
       },
       async getUserByAccount({ providerAccountId, provider }) {
-           const {user} = await prisma.account.findFirstOrThrow({
+           const account = await prisma.account.findUnique({
             where: {
               provider_provider_account_id: {
                 provider,
-                providerAccountId: providerAccountId,
+                provider_account_id: providerAccountId,
               }
             },
             include: {
               user: true,
             }
            })
+
+           if(!account) {
+return null
+           }
+
+           const {user} = account
            return {
             id: user.id,
             name: user.name,
             email: user.email!,
             avatar_url: user.avatar_url!,
             emailVerified: null,
+            username:user.username,
 
         }
       },
@@ -124,7 +158,7 @@ export  function PrismaAdapter(req:NextRequest,res:NextApiResponse):Adapter {
    }
       },
       async getSessionAndUser(sessionToken) {
-        const {user, ...session} = await prisma.session.findUniqueOrThrow({
+        const PrismaSession = await prisma.session.findUnique({
 where:{
   session_token: sessionToken,
 
@@ -133,6 +167,11 @@ include: {
   user: true,
 }
         })
+
+        if(!PrismaSession) {
+          return null
+        }
+        const {user,...session}= PrismaSession
         return {
           session: {
             userId: session.user_id,
@@ -166,6 +205,14 @@ include: {
        expires: prismaSession.expires,
       }
       },
+
+      async deleteSession(sessionToken) {
+        await prisma.session.delete({
+          where: {
+            session_token: sessionToken,
+          }
+        })
+      }
      
       
     }
