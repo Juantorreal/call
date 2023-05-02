@@ -7,7 +7,7 @@ import { destroyCookie, parseCookies } from "nookies"
 export  function PrismaAdapter(req:NextRequest,res:NextApiResponse):Adapter { 
     return {
       async createUser(user) {
-        const {'@ignitecall:userId': userIdOnCookies} = parseCookies({req})
+        const {'@call:userId': userIdOnCookies} = parseCookies({req})
 
         if(!userIdOnCookies) {
           throw new Error('User Id Not found on cookies')
